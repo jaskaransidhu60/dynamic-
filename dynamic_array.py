@@ -122,8 +122,9 @@ class DynamicArray:
         self._data[self._size - 1] = None
         self._size -= 1
 
+        # Adjust capacity based on conditions, respecting minimum capacity of 10 or previous capacity if within limits
         if self._size < self._capacity // 4 and self._capacity > 10:
-            new_capacity = max(10, 2 * self._size)
+            new_capacity = max(10, self._capacity // 2)
             self.resize(new_capacity)
 
     def slice(self, start_index: int, size: int) -> 'DynamicArray':
@@ -185,18 +186,18 @@ def chunk(arr: DynamicArray) -> DynamicArray:
     if arr.is_empty():
         return result
 
-    chunk = DynamicArray()
-    chunk.append(arr.get_at_index(0))
+    current_chunk = DynamicArray()
+    current_chunk.append(arr.get_at_index(0))
 
     for i in range(1, arr.length()):
         if arr.get_at_index(i) >= arr.get_at_index(i - 1):
-            chunk.append(arr.get_at_index(i))
+            current_chunk.append(arr.get_at_index(i))
         else:
-            result.append(chunk)
-            chunk = DynamicArray()
-            chunk.append(arr.get_at_index(i))
+            result.append(current_chunk)
+            current_chunk = DynamicArray()
+            current_chunk.append(arr.get_at_index(i))
 
-    result.append(chunk)
+    result.append(current_chunk)
     return result
 
 def find_mode(arr: DynamicArray) -> tuple:
@@ -209,23 +210,27 @@ def find_mode(arr: DynamicArray) -> tuple:
     mode_array = DynamicArray()
     current_count = 1
     max_count = 1
-    mode_value = arr.get_at_index(0)
+    current_value = arr.get_at_index(0)
 
     for i in range(1, arr.length()):
-        if arr.get_at_index(i) == arr.get_at_index(i - 1):
+        if arr.get_at_index(i) == current_value:
             current_count += 1
         else:
             if current_count > max_count:
                 max_count = current_count
                 mode_array = DynamicArray()
-                mode_array.append(arr.get_at_index(i - 1))
+                mode_array.append(current_value)
             elif current_count == max_count:
-                mode_array.append(arr.get_at_index(i - 1))
+                mode_array.append(current_value)
+            current_value = arr.get_at_index(i)
             current_count = 1
 
+    # Final check for last element group
     if current_count > max_count:
-        return DynamicArray([arr.get_at_index(arr.length() - 1)]), current_count
+        mode_array = DynamicArray()
+        mode_array.append(current_value)
+        max_count = current_count
     elif current_count == max_count:
-        mode_array.append(arr.get_at_index(arr.length() - 1))
+        mode_array.append(current_value)
 
     return mode_array, max_count
